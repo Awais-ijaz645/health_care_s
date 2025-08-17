@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
@@ -28,6 +28,14 @@ const Header: React.FC = () => {
   const { isAdminView, isPatientView, isAdminAuthenticated, isPatientAuthenticated, currentView } = useSelector((state: RootState) => state.appointments);
   const { isDark, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const handleNavClick = (view: string) => {
     if (view === 'admin') {
@@ -113,7 +121,11 @@ const Header: React.FC = () => {
 
   return (
     <motion.header 
-      className="bg-gradient-to-r from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-lg"
+      className={`sticky top-0 z-50 transition-all duration-300 border-b ${
+        isScrolled
+          ? 'backdrop-blur-2xl bg-white/10 dark:bg-gray-900/30 border-white/10 shadow-glow'
+          : 'backdrop-blur-md bg-transparent border-transparent'
+      }`}
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
@@ -166,7 +178,7 @@ const Header: React.FC = () => {
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <item.icon className="w-4 h-4" />
+                    <item.icon className="w-4 h-4 transition-all duration-300 group-hover:drop-shadow-[0_0_10px_rgba(139,92,246,0.7)]" />
                   </motion.div>
                   <span className="text-sm">{item.label}</span>
                 </div>
@@ -326,7 +338,7 @@ const Header: React.FC = () => {
                 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 transition-all duration-300 hover:drop-shadow-[0_0_10px_rgba(239,68,68,0.7)]" />
                 <span className="text-sm font-medium">Logout</span>
               </motion.button>
             )}
@@ -396,7 +408,7 @@ const Header: React.FC = () => {
                       currentView === item.id 
                         ? 'text-white' 
                         : 'text-primary-600 dark:text-primary-400'
-                    }`} />
+                    } transition-all duration-300 group-hover:drop-shadow-[0_0_10px_rgba(139,92,246,0.7)]`} />
                   </motion.div>
                   <div className="text-left flex-1">
                     <div className="font-semibold">{item.label}</div>

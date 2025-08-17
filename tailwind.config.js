@@ -5,6 +5,14 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: 'class',
+  safelist: [
+    {
+      pattern: /(from|to|via|bg|text|border)-(primary|secondary|accent|success|warning|error)-(50|100|200|300|400|500|600|700|800|900)/,
+    },
+    {
+      pattern: /(from|to|via)-(pink|rose|purple|indigo|teal|cyan)-(400|500|600)/,
+    },
+  ],
   theme: {
     extend: {
       animation: {

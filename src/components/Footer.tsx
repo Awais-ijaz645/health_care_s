@@ -1,6 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { setAdminView, setPatientView, setCurrentView } from '../store/slices/appointmentSlice';
+import type { RootState } from '../store';
 import { 
   Heart, 
   Shield, 
@@ -8,42 +11,42 @@ import {
   Phone, 
   Mail, 
   MapPin, 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Linkedin,
   Stethoscope
 } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const { isDark } = useTheme();
+  const dispatch = useDispatch();
+  const currentView = useSelector((s: RootState) => s.appointments.currentView);
 
-  const footerLinks = {
-    services: [
-      { name: 'Patient Management', href: '#' },
-      { name: 'Appointment Booking', href: '#' },
-      { name: 'Medical Records', href: '#' },
-      { name: 'Doctor Scheduling', href: '#' },
-    ],
-    company: [
-      { name: 'About Us', href: '#' },
-      { name: 'Our Team', href: '#' },
-      { name: 'Careers', href: '#' },
-      { name: 'Contact', href: '#' },
-    ],
-    support: [
-      { name: 'Help Center', href: '#' },
-      { name: 'Privacy Policy', href: '#' },
-      { name: 'Terms of Service', href: '#' },
-      { name: 'Security', href: '#' },
-    ],
+  // Motion variants for nice staggered reveal
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 14 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
   };
 
-  const socialLinks = [
-    { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Linkedin, href: '#', label: 'LinkedIn' },
+  // Only include links that exist in the app views
+  const quickLinks: { name: string; id: string; onClick: () => void }[] = [
+    { name: 'Home', id: 'home', onClick: () => dispatch(setCurrentView('home')) },
+    { name: 'Book Appointment', id: 'booking', onClick: () => dispatch(setCurrentView('booking')) },
+    { name: 'Calendar', id: 'calendar', onClick: () => dispatch(setCurrentView('calendar')) },
+    { name: 'Patients', id: 'patients', onClick: () => dispatch(setCurrentView('patients')) },
+    { name: 'Doctors', id: 'doctor', onClick: () => dispatch(setCurrentView('doctor')) },
+    { name: 'Patient Portal', id: 'patient-dashboard', onClick: () => { dispatch(setPatientView(true)); dispatch(setAdminView(false)); dispatch(setCurrentView('patient-dashboard')); } },
+    { name: 'Admin Panel', id: 'admin', onClick: () => { dispatch(setAdminView(true)); dispatch(setPatientView(false)); } },
+  ];
+
+  // Ensure current page link appears first for context-awareness
+  const sortedQuickLinks = [
+    ...quickLinks.filter(l => l.id === currentView),
+    ...quickLinks.filter(l => l.id !== currentView),
   ];
 
   const features = [
@@ -79,13 +82,17 @@ const Footer: React.FC = () => {
       
       {/* Features Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {features.map((feature, index) => (
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 mb-12"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          {features.map((feature) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              variants={itemVariants}
               className={`text-center p-6 rounded-xl ${
                 isDark 
                   ? 'bg-black/20 backdrop-blur-lg border border-gray-700/50' 
@@ -109,10 +116,10 @@ const Footer: React.FC = () => {
               </p>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <motion.div
@@ -138,171 +145,115 @@ const Footer: React.FC = () => {
             <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-800'}`}>
               Advanced healthcare management system providing comprehensive patient care and medical record management.
             </p>
-            <div className="flex space-x-4">
-              {socialLinks.map((social) => (
-                <motion.a
-                  key={social.label}
-                  href={social.href}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`p-2 rounded-lg ${
-                    isDark 
-                      ? 'bg-gray-800/50 hover:bg-cyan-500/20 text-gray-400 hover:text-cyan-400' 
-                      : 'bg-gray-100 hover:bg-blue-500/20 text-gray-600 hover:text-blue-500'
-                  } transition-all duration-300`}
-                  aria-label={social.label}
-                >
-                  <social.icon className="w-5 h-5" />
-                </motion.a>
-              ))}
-            </div>
+            {/* Social icons removed until real URLs are available */}
           </div>
 
-          {/* Links Sections */}
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <div key={category}>
-              <h3 className={`text-lg font-semibold mb-4 ${
-                isDark ? 'text-white' : 'text-gray-900'
-              }`}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </h3>
-              <ul className="space-y-2">
-                {links.map((link) => (
-                  <li key={link.name}>
-                    <motion.a
-                      href={link.href}
-                      whileHover={{ x: 5 }}
-                      className={`${
-                        isDark 
-                          ? 'text-gray-400 hover:text-cyan-400' 
-                          : 'text-gray-800 hover:text-blue-500'
-                      } transition-colors duration-300 flex items-center group`}
+          {/* Quick Links (only working modules) */}
+          <div className="lg:col-span-1">
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Links</h3>
+            <motion.ul 
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              {sortedQuickLinks.map((link) => {
+                const isActive = link.id === currentView;
+                return (
+                  <motion.li key={link.name} variants={itemVariants}>
+                    <motion.button
+                      onClick={link.onClick}
+                      whileHover={{ x: 6 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 ${
+                        isActive
+                          ? (isDark ? 'bg-cyan-500/10 text-cyan-300 ring-1 ring-cyan-500/30' : 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30')
+                          : (isDark ? 'text-gray-400 hover:text-cyan-300 hover:bg-white/5' : 'text-gray-800 hover:text-blue-600 hover:bg-blue-50')
+                      }`}
                     >
-                      <span className={`w-0 h-px ${
-                        isDark ? 'bg-cyan-400' : 'bg-blue-500'
-                      } group-hover:w-4 transition-all duration-300 mr-2`}></span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? (isDark ? 'bg-cyan-400' : 'bg-blue-500') : (isDark ? 'bg-gray-600' : 'bg-gray-300')} `}></span>
                       {link.name}
-                    </motion.a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+                    </motion.button>
+                  </motion.li>
+                );
+              })}
+            </motion.ul>
+          </div>
 
-        {/* Contact Info */}
-        <div className={`border-t ${
-          isDark ? 'border-gray-700/50' : 'border-gray-200/50'
-        } pt-8 mb-8`}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center space-x-3"
+          {/* Contact Info */}
+          <div className={`border-t ${isDark ? 'border-gray-700/50' : 'border-gray-200/50'} pt-8 mb-8 lg:mb-0`}>
+            <motion.div 
+              className="grid grid-cols-1 gap-3 items-stretch"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.2 }}
             >
-              <div className={`p-2 rounded-lg ${
-                isDark 
-                  ? 'bg-cyan-500/20 text-cyan-400' 
-                  : 'bg-blue-500/20 text-blue-500'
-              }`}>
-                <Phone className="w-5 h-5" />
-              </div>
-              <div>
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Call Us
-                </p>
-                <p className={isDark ? 'text-gray-400' : 'text-gray-800'}>
-                  +1 (555) 123-4567
-                </p>
-              </div>
-            </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                variants={itemVariants}
+                className="glass-card flex items-center gap-3 px-4 py-3 h-14 w-full"
+              >
+                <div className={`w-9 h-9 flex items-center justify-center rounded-lg ${
+                  isDark 
+                    ? 'bg-cyan-500/20 text-cyan-400' 
+                    : 'bg-blue-500/20 text-blue-500'
+                }`}>
+                  <Phone className="w-5 h-5" />
+                </div>
+                <div className="flex items-center gap-2 min-w-0 w-full">
+                  <span className={`font-semibold whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>Call Us:</span>
+                  <span className={`text-sm truncate ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>+1 (555) 123-4567</span>
+                </div>
+              </motion.div>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center space-x-3"
-            >
-              <div className={`p-2 rounded-lg ${
-                isDark 
-                  ? 'bg-purple-500/20 text-purple-400' 
-                  : 'bg-indigo-500/20 text-indigo-500'
-              }`}>
-                <Mail className="w-5 h-5" />
-              </div>
-              <div>
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Email Us
-                </p>
-                <p className={isDark ? 'text-gray-400' : 'text-gray-800'}>
-                  support@medicare.com
-                </p>
-              </div>
-            </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                variants={itemVariants}
+                className="glass-card flex items-center gap-3 px-4 py-3 h-14 w-full"
+              >
+                <div className={`w-9 h-9 flex items-center justify-center rounded-lg ${
+                  isDark 
+                    ? 'bg-purple-500/20 text-purple-400' 
+                    : 'bg-indigo-500/20 text-indigo-500'
+                }`}>
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div className="flex items-center gap-2 min-w-0 w-full">
+                  <span className={`font-semibold whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>Email Us:</span>
+                  <span className={`text-sm truncate ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>support@medicare.com</span>
+                </div>
+              </motion.div>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center space-x-3"
-            >
-              <div className={`p-2 rounded-lg ${
-                isDark 
-                  ? 'bg-green-500/20 text-green-400' 
-                  : 'bg-green-500/20 text-green-500'
-              }`}>
-                <MapPin className="w-5 h-5" />
-              </div>
-              <div>
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Visit Us
-                </p>
-                <p className={isDark ? 'text-gray-400' : 'text-gray-800'}>
-                  123 Healthcare Ave, Medical City
-                </p>
-              </div>
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                variants={itemVariants}
+                className="glass-card flex items-center gap-3 px-4 py-3 h-14 w-full"
+              >
+                <div className={`w-9 h-9 flex items-center justify-center rounded-lg ${
+                  isDark 
+                    ? 'bg-green-500/20 text-green-400' 
+                    : 'bg-green-500/20 text-green-500'
+                }`}>
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div className="flex items-center gap-2 min-w-0 w-full">
+                  <span className={`font-semibold whitespace-nowrap ${isDark ? 'text-white' : 'text-gray-900'}`}>Visit Us:</span>
+                  <span className={`text-sm truncate ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>123 Healthcare Ave, Medical City</span>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
 
         {/* Bottom Section */}
-        <div className={`border-t ${
-          isDark ? 'border-gray-700/50' : 'border-gray-200/50'
-        } pt-8`}>
+        <div className={`border-t ${isDark ? 'border-gray-700/50' : 'border-gray-200/50'} pt-8`}>
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-800'}`}>
               &copy; 2024 MediCare. All rights reserved. Built with &hearts; for better healthcare.
             </p>
-            <div className="flex items-center space-x-6 text-sm">
-              <motion.a
-                href="#"
-                whileHover={{ y: -2 }}
-                className={`${
-                  isDark 
-                    ? 'text-gray-400 hover:text-cyan-400' 
-                    : 'text-gray-800 hover:text-blue-500'
-                } transition-colors duration-300`}
-              >
-                Privacy Policy
-              </motion.a>
-              <motion.a
-                href="#"
-                whileHover={{ y: -2 }}
-                className={`${
-                  isDark 
-                    ? 'text-gray-400 hover:text-cyan-400' 
-                    : 'text-gray-800 hover:text-blue-500'
-                } transition-colors duration-300`}
-              >
-                Terms of Service
-              </motion.a>
-              <motion.a
-                href="#"
-                whileHover={{ y: -2 }}
-                className={`${
-                  isDark 
-                    ? 'text-gray-400 hover:text-cyan-400' 
-                    : 'text-gray-800 hover:text-blue-500'
-                } transition-colors duration-300`}
-              >
-                Cookie Policy
-              </motion.a>
-            </div>
+            {/* Removed placeholder policy links until real pages are added */}
           </div>
         </div>
       </div>
